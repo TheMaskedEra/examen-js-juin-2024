@@ -1,0 +1,24 @@
+html {
+    background-size: auto 100%;
+    background-position: center;
+}
+header {
+    text-align: center;
+    color: #fff;
+    background-color: #333;
+    margin: 0 0 1em 0;
+}
+header h1 {
+    font-size: 2.5em;
+    margin: 0;
+    padding: 0.2em 0;
+    text-shadow: 0.1rem 0.2rem 0.1rem #ababab;
+}
+h1 {
+    display: block;
+    text-align: center;
+    background-color: #888;
+    margin: 0 auto;
+    width: 55.5rem;
+    padding: 0 0.75rem;
+}
