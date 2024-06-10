@@ -20,10 +20,10 @@ class Room {
 }
 
 class Site {
-    constructor({siteCode, siteName, rooms}) {
+    constructor({siteCode, siteName, rooms} = []) {
         this.siteCode = siteCode;
         this.siteName = siteName;
-        this.rooms = rooms;
+        this.rooms = rooms.map(item => new Room(item));
     }
 
     pushRooms(...rooms) {
@@ -41,8 +41,14 @@ class Site {
     }
 
     removeRoom(roomName) {
-        let x = this.rooms.find(room => room.name === roomName);
-        return Boolean(x);
+        let index = this.rooms.findIndex(room => room.room === roomName);
+
+        if (index !== -1) {
+            this.rooms.splice(index, 1);
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 
@@ -64,26 +70,27 @@ function getSites(){
 }
 
 function getRooms(){
-    let sites = getSites();
+    let sites = [];
+    getSites()
+        .then(sites => {
+            for (let site of sites) {
+                let data = { siteCode: site.siteCode };
+                let rooms = fetch(`${ROOMS_URL}`, { method: 'POST', body: JSON.stringify(data) })
+                    .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`${response.status} : ${response.statusText}`);
+                               }
+                            return response.json();
+                        }
+                    ).then(response => {
+                        return response.map(item => new Room(item));
+                });
+                site.pushRooms(rooms);
+            }
+        })
+        .catch(error => console.log(error));
 
-    for (let site of sites) {
-        let siteRooms = new Promise((resolve, reject) => {
-            let data = { siteCode: site.siteCode };
-            let rooms = fetch(`${ROOMS_URL}`, { method: 'POST', headers: { 'Content-Type' : 'application/json' }, body: JSON.stringify(data) })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`${response.status} : ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(response => {
-                    let rooms = response.map(item => new Room(item));
-                    site.pushRooms(rooms);
-                    return site;
-                })
-                .catch(error => reject(error));
-        });
-    }
+    return sites;
 }
 
 function renderSites(sites){
