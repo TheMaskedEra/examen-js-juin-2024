@@ -70,27 +70,38 @@ function getSites(){
 }
 
 function getRooms(){
-    let sites = [];
-    getSites()
+    let promises = [];
+    return getSites()
         .then(sites => {
             for (let site of sites) {
                 let data = { siteCode: site.siteCode };
-                let rooms = fetch(`${ROOMS_URL}`, { method: 'POST', body: JSON.stringify(data) })
+                let roomPromise = fetch(ROOMS_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
                     .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`${response.status} : ${response.statusText}`);
-                               }
-                            return response.json();
+                        if (!response.ok) {
+                            throw new Error(`${response.status} : ${response.statusText}`);
                         }
-                    ).then(response => {
-                        return response.map(item => new Room(item));
-                });
-                site.pushRooms(rooms);
+                        return response.json();
+                    })
+                    .then(roomData => {
+                        // Convertir les données de chambre en instances de Room
+                        site.rooms = roomData.map(room => new Room(room));
+                    });
+                promises.push(roomPromise);
             }
-        })
-        .catch(error => console.log(error));
 
-    return sites;
+            // Attendre que toutes les promesses se résolvent
+            return Promise.all(promises);
+        })
+        .catch(error => {
+            console.error("Une erreur s'est produite lors de la récupération des chambres :", error);
+            return [];
+        });
 }
 
 function renderSites(sites){
