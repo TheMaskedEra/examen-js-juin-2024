@@ -1,4 +1,4 @@
-export {Room, Site, getSites}
+export {Room, Site, getSites, getRooms}
 const ROOMS_URL = 'https://dartagnan.cg.helmo.be/~p150107/js2/rooms/rooms.php';
 class Room {
     constructor({room, roomTypeCode, nbrPlaces}) {
@@ -47,26 +47,43 @@ class Site {
 }
 
 function getSites(){
-    let resultat = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         fetch(`${ROOMS_URL}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`${response.status} : ${response.statusText}`);
                 }
-                return response;
+                return response.json();
             })
-            .then(response => {
-                for (let siteResponse of response) {
-                    let site = siteResponse.json();
-
-                }
+            .then(result => {
+                const sites = result.map(item => new Site(item));
+                resolve(sites);
             })
             .catch(error => reject(error));
     });
 }
 
 function getRooms(){
-    
+    let sites = getSites();
+
+    for (let site of sites) {
+        let siteRooms = new Promise((resolve, reject) => {
+            let data = { siteCode: site.siteCode };
+            let rooms = fetch(`${ROOMS_URL}`, { method: 'POST', headers: { 'Content-Type' : 'application/json' }, body: JSON.stringify(data) })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`${response.status} : ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(response => {
+                    let rooms = response.map(item => new Room(item));
+                    site.pushRooms(rooms);
+                    return site;
+                })
+                .catch(error => reject(error));
+        });
+    }
 }
 
 function renderSites(sites){
