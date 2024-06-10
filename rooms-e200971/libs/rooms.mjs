@@ -80,14 +80,16 @@ function getRooms(){
                             if (!response.ok) {
                                 throw new Error(`${response.status} : ${response.statusText}`);
                             }
-                            resolve(response.json());
                         })
                         .then(result => {
-                            const x = result.map(item => new Room(item));
-                            site.pushRooms(x);
+                            site.rooms = result.map(item => new Room(item));
                             resolve(site);
                         })
-                        .catch(error => reject(error));
+                        .catch(error => {
+                            console.log(error);
+                            site.rooms = []
+                            resolve(site);
+                        });
                 });
             });
 
