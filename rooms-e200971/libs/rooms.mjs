@@ -70,37 +70,28 @@ function getSites(){
 }
 
 function getRooms(){
-    let promises = [];
     return getSites()
         .then(sites => {
-            for (let site of sites) {
-                let data = { siteCode: site.siteCode };
-                let roomPromise = fetch(ROOMS_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`${response.status} : ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .then(roomData => {
-                        // Convertir les données de chambre en instances de Room
-                        site.rooms = roomData.map(room => new Room(room));
-                    });
-                promises.push(roomPromise);
-            }
+            let promises = sites.map(site => {
+                return new Promise((resolve, reject) => {
+                    let data = { siteCode: site.siteCode };
+                    fetch(`${ROOMS_URL}`, { method: 'POST', body: JSON.stringify(data) })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`${response.status} : ${response.statusText}`);
+                            }
+                            resolve(response.json());
+                        })
+                        .then(result => {
+                            const x = result.map(item => new Room(item));
+                            site.pushRooms(x);
+                            resolve(site);
+                        })
+                        .catch(error => reject(error));
+                });
+            });
 
-            // Attendre que toutes les promesses se résolvent
             return Promise.all(promises);
-        })
-        .catch(error => {
-            console.error("Une erreur s'est produite lors de la récupération des chambres :", error);
-            return [];
         });
 }
 
