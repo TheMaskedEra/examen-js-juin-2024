@@ -2,14 +2,14 @@ import {Room, Site} from '../libs/rooms.mjs';
 
 import {expect} from 'chai';
 
-describe('Site', function() {
-    describe('sitePush', function() {
+describe('Site', function () {
+    describe('pushRooms', function() {
         it('Sans valeur', function() {
-           let site = new Site({siteCode : 'CG', siteName: 'Campus Guillemins', rooms: []});
-           let nbrOfRoomsPushed = site.pushRooms();
-           expect(nbrOfRoomsPushed).to.equal(0);
-           let roomsArray = site.rooms;
-           expect(roomsArray.length).to.equal(0);
+            let site = new Site({siteCode : 'CG', siteName: 'Campus Guillemins', rooms: []});
+            let nbrOfRoomsPushed = site.pushRooms();
+            expect(nbrOfRoomsPushed).to.equal(0);
+            let roomsArray = site.rooms;
+            expect(roomsArray.length).to.equal(0);
         });
 
         it('Ajout de plusieurs valeurs sans doublons', function() {
@@ -47,5 +47,6 @@ describe('Site', function() {
             expect(room1Added.nbrPlaces).to.equal(room1.nbrPlaces);
             expect(room2Added).to.be.undefined;
         });
+
     });
 });
